@@ -31,10 +31,12 @@ import {onMounted, ref, watch} from "vue";
 import MessageBox from "./messageBox.vue";
 
 import {ChatCompletionRequestMessage} from "openai";
-import {useOpenAIStore} from "../store/openai.ts";
+import {useOpenAIStore} from "../store/openai";
+import {useGlobalStore} from "../store";
+import {ElMessage} from "element-plus";
 
 const openaiStore = useOpenAIStore()
-const msgBox = ref(null);
+const msgBox = ref<any>(null);
 
 const props = defineProps({
   id: {
@@ -45,7 +47,7 @@ const props = defineProps({
 
 const inputText = ref('')
 
-const handleLineBreak = (event)=> {
+const handleLineBreak = (event:any)=> {
   // 在光标位置插入换行符
   const input = event.target;
   const start = input.selectionStart;
@@ -62,14 +64,20 @@ onMounted(()=>{
 watch(openaiStore.messages, (val) => {
 
   setTimeout(() => {
-    msgBox.value.scrollTop = msgBox.value.scrollHeight;
-    console.log('scrollHeight', msgBox.value.scrollHeight)
-    console.log('scrollTop', msgBox.value.scrollTop)
+    msgBox.value!.scrollTop = msgBox.value!.scrollHeight;
+    console.log('scrollHeight', msgBox.value!.scrollHeight)
+    console.log('scrollTop', msgBox.value!.scrollTop)
   }, 20);
 })
 
+const globalStore = useGlobalStore()
 
 const handleSend = () => {
+  if (globalStore.sk == ''){
+    globalStore.showFriends = true;
+    ElMessage.error('清先设置 Openai Key')
+    return
+  }
   openaiStore.sendMessage(inputText.value)
   inputText.value = ''
 }

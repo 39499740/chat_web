@@ -23,6 +23,7 @@ import {ChatCompletionRequestMessage} from "openai";
 
 const props = defineProps({
   message: {
+    //@ts-ignore
     type: ChatCompletionRequestMessage,
     default: {}
   }

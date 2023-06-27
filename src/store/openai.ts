@@ -1,7 +1,6 @@
 import {defineStore} from "pinia";
 import {Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessage} from "openai";
-import {ChatCompletionRequestMessageRoleEnum} from "openai/api.ts";
-import {messageEntity} from "./model/chat.ts";
+import {ChatCompletionRequestMessageRoleEnum} from "openai/api";
 
 export const useOpenAIStore = defineStore({
     id: "openAIStore",
@@ -41,6 +40,7 @@ export const useOpenAIStore = defineStore({
             }
 
             let resp = await this.openAI.createChatCompletion(req)
+            // @ts-ignore
             this.messages.push(resp.data.choices[0].message)
 
         },
@@ -53,6 +53,7 @@ export const useOpenAIStore = defineStore({
                 model: 'gpt-3.5-turbo-0613',
                 messages: this.messages,
             }).then(resp => {
+                // @ts-ignore
                 this.messages.push(resp.data.choices[0].message)
             })
         }

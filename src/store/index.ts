@@ -4,6 +4,7 @@ export const useGlobalStore = defineStore({
     id: 'global',
     state: () => ({
         sk: '',
+        showFriends:false,
     }),
     getters: {
         getSk(): string {

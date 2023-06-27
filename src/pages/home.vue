@@ -14,7 +14,7 @@
     <ChatBox class="chatBox"/>
   </div>
 
-  <el-drawer v-model="showFriends" direction="ltr" :show-close="false" :with-header="false">
+  <el-drawer v-model="globalStore.showFriends" direction="ltr" :show-close="false" :with-header="false">
     <div class="leftDrawer">
       <div class="drawerContent">
         <span class="inputTitle">OpenAI Key</span>
@@ -35,10 +35,9 @@ import {onMounted, ref} from "vue";
 import ChatBox from "../components/chatBox.vue";
 import Friends from "../components/friends.vue";
 import {useGlobalStore} from "../store";
-import {useOpenAIStore} from "../store/openai.ts";
+import {useOpenAIStore} from "../store/openai";
 import ChatTab from "../components/chatTab.vue";
 
-const showFriends = ref(false)
 const activeTab = ref('1')
 const sk = ref('')
 const globalStore = useGlobalStore()
@@ -81,12 +80,12 @@ const handleDrawerSave = () => {
     openaiStore.setupOpenAI(sk.value)
   }
   globalStore.setSk(sk.value)
-  showFriends.value = false
+  globalStore.showFriends = false
 }
 
 const openDrawer = () => {
   sk.value = globalStore.getSk
-  showFriends.value = true
+  globalStore.showFriends = true
 
 }
 

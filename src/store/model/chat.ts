@@ -1,6 +1,6 @@
-import {ChatCompletionRequestMessageRoleEnum} from "openai/api.ts";
+import {ChatCompletionRequestMessageRoleEnum} from "openai/api";
 
 export interface ChatEntity {
     id: number;
-    
+
 }

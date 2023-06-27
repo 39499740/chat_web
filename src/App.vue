@@ -5,13 +5,15 @@
 </template>
 <script setup lang="ts">
 import HomePage from './pages/home.vue'
-import {useOpenAIStore} from "./store/openai.ts";
-import {onMounted} from "vue";
+import {useOpenAIStore} from "./store/openai";
+
 import {useGlobalStore} from "./store";
+import {onMounted} from "vue";
+
 const openaiStore = useOpenAIStore()
 const globalStore = useGlobalStore()
 onMounted(() => {
-  if(globalStore.sk != "") {
+  if (globalStore.sk != "") {
     openaiStore.setupOpenAI(globalStore.sk)
   }
 })

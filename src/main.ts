@@ -11,8 +11,6 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/atom-one-dark.css' //样式
 
 
-
-
 const store = createPinia();
 store.use(createPersistedState({
     serializer: {//指定参数序列化器
@@ -26,9 +24,9 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
 }
 //创建v-highlight全局指令
-app.directive('highlight',function (el) {
+app.directive('highlight', function (el) {
     let blocks = el.querySelectorAll('pre code');
-    blocks.forEach((block)=>{
+    blocks.forEach((block: any) => {
         hljs.highlightBlock(block)
     })
 })
