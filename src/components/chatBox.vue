@@ -17,7 +17,7 @@
       />
       <div class="bottomArea" >
         <div>
-          <el-button type="danger" @click="handleReset" disabled>重新开始会话</el-button>
+          <el-button type="danger" @click="handleReset" :disabled="globalStore.getSk == ''">重新开始会话</el-button>
           <el-button type="info" @click="handleHistory" disabled>查看历史记录</el-button>
         </div>
         <el-button type="primary" @click="handleSend">发送(Ctrl+Enter)</el-button>
@@ -79,7 +79,12 @@ const enableInput = ref(false)
 
 const globalStore = useGlobalStore()
 
-const handleSend = () => {
+const handleSend = (evt:any) => {
+  let target = evt.target;
+  if(target.nodeName == "SPAN"){
+    target = evt.target.parentNode;
+  }
+  target.blur();
   if (globalStore.sk == ''){
     globalStore.showFriends = true;
     ElMessage.error('清先设置 Openai Key')
@@ -90,11 +95,21 @@ const handleSend = () => {
   inputText.value = ''
 }
 
-const handleReset = () => {
-  console.log('handleReset')
+const handleReset = (evt:any) => {
+  let target = evt.target;
+  if(target.nodeName == "SPAN"){
+    target = evt.target.parentNode;
+  }
+  target.blur();
+  openaiStore.setupOpenAI(globalStore.sk)
 }
 
-const handleHistory = () => {
+const handleHistory = (evt:any) => {
+  let target = evt.target;
+  if(target.nodeName == "SPAN"){
+    target = evt.target.parentNode;
+  }
+  target.blur();
   console.log('handleHistory')
 }
 
