@@ -10,6 +10,7 @@
         <ChatTab class="title" v-for="tab in tabs" :key="tab.id" :id="tab.id" :title="tab.name"
                  :isActive="tab.id==activeTab" @handleClick="tabClicked" @handleClose="tabClose"/>
       </div>
+      <span>v 0.0.3</span>
     </div>
     <ChatBox class="chatBox"/>
   </div>

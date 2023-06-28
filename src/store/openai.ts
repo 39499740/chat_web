@@ -11,6 +11,9 @@ export const useOpenAIStore = defineStore({
     getters: {
         getOpenAI(): any {
             return this.openAI;
+        },
+        getMessages(): ChatCompletionRequestMessage[] {
+            return this.messages;
         }
     },
     actions: {

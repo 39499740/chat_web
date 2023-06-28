@@ -9,15 +9,16 @@
           v-model="inputText"
           class="inputField"
           type="textarea"
-          placeholder="请输入....."
+          :placeholder="enableInput ? '请输入内容' : '请等待对方回复'"
           :autosize="true"
           resize="none"
           @keydown.ctrl.enter="handleSend"
+          :disabled="!enableInput"
       />
       <div class="bottomArea" >
         <div>
-          <el-button type="danger" @click="handleReset">重新开始会话</el-button>
-          <el-button type="info" @click="handleHistory">查看历史记录</el-button>
+          <el-button type="danger" @click="handleReset" disabled>重新开始会话</el-button>
+          <el-button type="info" @click="handleHistory" disabled>查看历史记录</el-button>
         </div>
         <el-button type="primary" @click="handleSend">发送(Ctrl+Enter)</el-button>
       </div>
@@ -57,18 +58,24 @@ const handleLineBreak = (event:any)=> {
 
 }
 
-onMounted(()=>{
+onMounted(() => {
+  watch(()=>openaiStore.getMessages, (val) => {
 
+    setTimeout(() => {
+      msgBox.value!.scrollTop = msgBox.value!.scrollHeight;
+    }, 20);
+    if (openaiStore.getMessages.length > 1 && openaiStore.getMessages.length % 2 === 0) {
+      enableInput.value = true
+    }
+  },{
+    immediate: true,
+    deep: true
+  })
 })
 
-watch(openaiStore.messages, (val) => {
 
-  setTimeout(() => {
-    msgBox.value!.scrollTop = msgBox.value!.scrollHeight;
-    console.log('scrollHeight', msgBox.value!.scrollHeight)
-    console.log('scrollTop', msgBox.value!.scrollTop)
-  }, 20);
-})
+
+const enableInput = ref(false)
 
 const globalStore = useGlobalStore()
 
@@ -79,6 +86,7 @@ const handleSend = () => {
     return
   }
   openaiStore.sendMessage(inputText.value)
+  enableInput.value = false
   inputText.value = ''
 }
 
