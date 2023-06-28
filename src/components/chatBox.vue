@@ -2,7 +2,8 @@
 
   <div class="chat_content">
     <div class="chatArea resizeable" ref="msgBox">
-       <MessageBox  v-for="(msg,index) in openaiStore.messages.filter(item => item.role !== 'system')" :message="msg" :key="index"/>
+      <MessageBox v-for="(msg,index) in openaiStore.messages.filter(item => item.role !== 'system')" :message="msg"
+                  :key="msg"/>
     </div>
     <div class="inputArea">
       <el-input
@@ -15,15 +16,25 @@
           @keydown.ctrl.enter="handleSend"
           :disabled="!enableInput"
       />
-      <div class="bottomArea" >
+      <div class="bottomArea">
         <div>
           <el-button type="danger" @click="handleReset" :disabled="globalStore.getSk == ''">重新开始会话</el-button>
-          <el-button type="info" @click="handleHistory" disabled>查看历史记录</el-button>
+          <el-button type="info" @click="handleHistory">查看会话列表</el-button>
         </div>
         <el-button type="primary" @click="handleSend">发送(Ctrl+Enter)</el-button>
       </div>
     </div>
+    <el-drawer v-model="showHistory" direction="rtl" :show-close="false" title="历史会话">
+
+      <div class="historyDrawer">
+        <div v-for="(conv,index) in conversations" :key="conv.id" @click="changeConv(index)"
+             :class="{conv:true,selected:openaiStore.activeId == conv.conversationId,dark:index%2!=0}">
+          {{conv.title}}
+        </div>
+      </div>
+    </el-drawer>
   </div>
+
 </template>
 
 <script setup lang="ts">
@@ -35,9 +46,15 @@ import {ChatCompletionRequestMessage} from "openai";
 import {useOpenAIStore} from "../store/openai";
 import {useGlobalStore} from "../store";
 import {ElMessage} from "element-plus";
+import {ConversationDBEntity, db} from "../utils/db";
 
 const openaiStore = useOpenAIStore()
 const msgBox = ref<any>(null);
+
+
+const showHistory = ref(false)
+// 会话列表
+const conversations = ref<ConversationDBEntity[]>([])
 
 const props = defineProps({
   id: {
@@ -48,7 +65,7 @@ const props = defineProps({
 
 const inputText = ref('')
 
-const handleLineBreak = (event:any)=> {
+const handleLineBreak = (event: any) => {
   // 在光标位置插入换行符
   const input = event.target;
   const start = input.selectionStart;
@@ -59,7 +76,7 @@ const handleLineBreak = (event:any)=> {
 }
 
 onMounted(() => {
-  watch(()=>openaiStore.getMessages, (val) => {
+  watch(() => openaiStore.getMessages, (val) => {
 
     setTimeout(() => {
       msgBox.value!.scrollTop = msgBox.value!.scrollHeight;
@@ -67,25 +84,24 @@ onMounted(() => {
     if (openaiStore.getMessages.length > 1 && openaiStore.getMessages.length % 2 === 0) {
       enableInput.value = true
     }
-  },{
+  }, {
     immediate: true,
     deep: true
   })
 })
 
 
-
 const enableInput = ref(false)
 
 const globalStore = useGlobalStore()
 
-const handleSend = (evt:any) => {
+const handleSend = (evt: any) => {
   let target = evt.target;
-  if(target.nodeName == "SPAN"){
+  if (target.nodeName == "SPAN") {
     target = evt.target.parentNode;
   }
   target.blur();
-  if (globalStore.sk == ''){
+  if (globalStore.sk == '') {
     globalStore.showFriends = true;
     ElMessage.error('清先设置 Openai Key')
     return
@@ -95,22 +111,34 @@ const handleSend = (evt:any) => {
   inputText.value = ''
 }
 
-const handleReset = (evt:any) => {
+const handleReset = (evt: any) => {
   let target = evt.target;
-  if(target.nodeName == "SPAN"){
+  if (target.nodeName == "SPAN") {
     target = evt.target.parentNode;
   }
   target.blur();
+  enableInput.value = false
+  inputText.value = ''
   openaiStore.setupOpenAI(globalStore.sk)
 }
 
-const handleHistory = (evt:any) => {
+const handleHistory = (evt: any) => {
   let target = evt.target;
-  if(target.nodeName == "SPAN"){
+  if (target.nodeName == "SPAN") {
     target = evt.target.parentNode;
   }
   target.blur();
-  console.log('handleHistory')
+
+  db.conversationDB.toArray().then((res: any) => {
+    conversations.value = res
+  })
+  showHistory.value = true
+
+}
+
+const changeConv = (index: number) => {
+  openaiStore.changeConv(conversations.value[index].conversationId)
+  showHistory.value = false
 }
 
 </script>
@@ -125,7 +153,7 @@ const handleHistory = (evt:any) => {
 
   .chatArea {
     min-height: 30%;
-    overflow-y:scroll;
+    overflow-y: scroll;
     height: 80%;
   }
 
@@ -162,4 +190,29 @@ const handleHistory = (evt:any) => {
   }
 }
 
+.historyDrawer {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+
+  .conv {
+    height: 60px;
+    padding: 10px 10px;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .selected {
+    border: 1px solid #28a37f;
+  }
+  .dark{
+    background: #efefef;
+  }
+}
 </style>

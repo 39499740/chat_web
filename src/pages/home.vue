@@ -6,6 +6,7 @@
           <Expand/>
         </el-icon>
       </div>
+
       <div class="titleList">
         <ChatTab class="title" v-for="tab in tabs" :key="tab.id" :id="tab.id" :title="tab.name"
                  :isActive="tab.id==activeTab" @handleClick="tabClicked" @handleClose="tabClose"/>
@@ -185,5 +186,6 @@ const openDrawer = () => {
     background: red;
   }
 }
+
 
 </style>
