@@ -3,7 +3,7 @@
   <div class="chat_content">
     <div class="chatArea resizeable" ref="msgBox">
       <MessageBox v-for="(msg,index) in openaiStore.messages.filter(item => item.role !== 'system')" :message="msg"
-                  :key="msg"/>
+                  :key="msg.content+msg.role"/>
     </div>
     <div class="inputArea">
       <el-input
@@ -21,7 +21,9 @@
           <el-button type="danger" @click="handleReset" :disabled="globalStore.getSk == ''">重新开始会话</el-button>
           <el-button type="info" @click="handleHistory">查看会话列表</el-button>
         </div>
-        <el-button type="primary" @click="handleSend">发送(Ctrl+Enter)</el-button>
+        <el-button type="primary" @click="handleSend" :disabled="!enableInput"
+        >发送(Ctrl+Enter)
+        </el-button>
       </div>
     </div>
     <el-drawer v-model="showHistory" direction="rtl" :show-close="false" title="历史会话">
@@ -29,7 +31,8 @@
       <div class="historyDrawer">
         <div v-for="(conv,index) in conversations" :key="conv.id" @click="changeConv(index)"
              :class="{conv:true,selected:openaiStore.activeId == conv.conversationId,dark:index%2!=0}">
-          {{conv.title}}
+          <span style="max-lines: 2;flex: 1">{{ conv.title }}</span>
+          <div style="cursor: pointer;" @click="deleteConv(conv.conversationId)">x</div>
         </div>
       </div>
     </el-drawer>
@@ -106,9 +109,11 @@ const handleSend = (evt: any) => {
     ElMessage.error('清先设置 Openai Key')
     return
   }
-  openaiStore.sendMessage(inputText.value)
-  enableInput.value = false
-  inputText.value = ''
+  if (inputText.value.replaceAll(" ", "") !== "") {
+    openaiStore.sendMessage(inputText.value)
+    enableInput.value = false
+    inputText.value = ''
+  }
 }
 
 const handleReset = (evt: any) => {
@@ -139,6 +144,26 @@ const handleHistory = (evt: any) => {
 const changeConv = (index: number) => {
   openaiStore.changeConv(conversations.value[index].conversationId)
   showHistory.value = false
+}
+
+const deleteConv = (conversationId: string) => {
+  db.conversationDB.where('conversationId').equals(conversationId).delete().then(() => {
+    db.conversationDB.toArray().then((res: any) => {
+      conversations.value = res
+      if (conversations.value.length > 0) {
+        if (openaiStore.activeId == conversationId) {
+          openaiStore.changeConv(conversations.value[0].conversationId)
+        }
+      } else {
+        enableInput.value = false
+        inputText.value = ''
+        openaiStore.setupOpenAI(globalStore.sk)
+      }
+    })
+    db.messageDB.where('conversationId').equals(conversationId).delete()
+
+
+  })
 }
 
 </script>
@@ -201,17 +226,16 @@ const changeConv = (index: number) => {
     width: 100%;
     box-sizing: border-box;
     cursor: pointer;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: flex;
+    flex-direction: row;
+    align-content: flex-start;
   }
 
   .selected {
     border: 1px solid #28a37f;
   }
-  .dark{
+
+  .dark {
     background: #efefef;
   }
 }
